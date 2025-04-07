@@ -77,14 +77,17 @@ const Login = () => {
         });
 
         const userInfo = await response.json();
-        console.log('Google userInfo:', userInfo); // 디버깅용 로그
+        console.log('Google userInfo:', userInfo);
         
         const backendResponse = await fetch(`${BACKEND_URL}/api/auth/google`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Origin': window.location.origin
           },
           credentials: 'include',
+          mode: 'cors',
           body: JSON.stringify({
             googleId: userInfo.sub,
             email: userInfo.email,
@@ -93,20 +96,21 @@ const Login = () => {
           }),
         });
 
-        const data = await backendResponse.json();
-
         if (!backendResponse.ok) {
-          throw new Error(data.error || 'Google login failed');
+          const errorData = await backendResponse.json();
+          throw new Error(errorData.error || 'Google login failed');
         }
 
+        const data = await backendResponse.json();
         setUser(data.user);
         navigate('/');
       } catch (error) {
+        console.error('Google login error:', error);
         setError(error.message);
-        console.error('Google login error:', error); // 디버깅용 로그
       }
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Google OAuth error:', error);
       setError('Google login failed');
     }
   });
