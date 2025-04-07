@@ -77,6 +77,7 @@ const Login = () => {
           headers: {
             'Authorization': `Bearer ${tokenResponse.access_token}`,
           },
+          withCredentials: true
         });
 
         if (!userInfoResponse.ok) {
