@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import axios from 'axios';
 
 const AuthContext = createContext();
 
@@ -9,100 +10,64 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 인증 상태 확인
   const checkAuth = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setUser(null);
-        setLoading(false);
-        return;
-      }
-
-      const response = await fetch(`${BACKEND_URL}/api/auth/check`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/auth/check`, {
+        withCredentials: true
       });
-
-      const data = await response.json();
-
-      if (response.ok && data.isAuthenticated) {
-        setUser({
-          ...data.user,
-          token
-        });
-      } else {
-        console.log('Auth check failed:', data.error);
-        localStorage.removeItem('token');
-        setUser(null);
-      }
+      setUser(response.data.user);
     } catch (error) {
-      console.error('Auth check error:', error);
-      localStorage.removeItem('token');
+      console.error('Authentication check failed:', error);
       setUser(null);
     } finally {
       setLoading(false);
     }
   };
 
-  // 로그인
-  const login = async (credentials) => {
-    const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(credentials)
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Login failed');
+  const login = async (email, password) => {
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/auth/login`,
+        { email, password },
+        { withCredentials: true }
+      );
+      setUser(response.data.user);
+      return response.data;
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
     }
-
-    localStorage.setItem('token', data.token);
-    setUser({
-      ...data.user,
-      token: data.token
-    });
-
-    return data;
   };
 
-  // 회원가입
   const register = async (userData) => {
-    const response = await fetch(`${BACKEND_URL}/api/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(userData)
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Registration failed');
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/auth/register`,
+        userData,
+        { withCredentials: true }
+      );
+      setUser(response.data.user);
+      return response.data;
+    } catch (error) {
+      console.error('Registration failed:', error);
+      throw error;
     }
-
-    localStorage.setItem('token', data.token);
-    setUser({
-      ...data.user,
-      token: data.token
-    });
-
-    return data;
   };
 
-  // 로그아웃
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
+  const logout = async () => {
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/auth/logout`,
+        {},
+        { withCredentials: true }
+      );
+      setUser(null);
+    } catch (error) {
+      console.error('Logout failed:', error);
+      throw error;
+    }
   };
 
-  // 컴포넌트 마운트 시 인증 상태 확인
   useEffect(() => {
     checkAuth();
   }, []);
