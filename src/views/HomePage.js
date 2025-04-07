@@ -275,7 +275,7 @@ const HomePage = () => {
 
       // 5. Save to backend
       console.log('Saving plan to backend:', newPlan);
-      const response = await fetch(`${BACKEND_URL}/api/travel-plans`, {
+      const response = await fetch(`${BACKEND_URL}/api/travelplans`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
