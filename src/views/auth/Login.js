@@ -101,7 +101,10 @@ const Login = () => {
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
           },
+          credentials: 'include',
+          mode: 'cors',
           body: JSON.stringify({
             googleId: userInfo.sub,
             email: userInfo.email,
