@@ -67,20 +67,25 @@ const Login = () => {
   };
 
   const googleLogin = useGoogleLogin({
-    flow: 'implicit',
     onSuccess: async (tokenResponse) => {
       try {
-        console.log('Google login success, fetching user info...');
-        const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        console.log('Google OAuth success, token received');
+        
+        // Google 사용자 정보 가져오기
+        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: {
-            Authorization: `Bearer ${tokenResponse.access_token}`,
+            'Authorization': `Bearer ${tokenResponse.access_token}`,
           },
         });
 
-        const userInfo = await response.json();
-        console.log('Google userInfo received:', userInfo);
-        
-        console.log('Sending request to backend:', `${BACKEND_URL}/api/auth/google`);
+        if (!userInfoResponse.ok) {
+          throw new Error('Failed to fetch Google user info');
+        }
+
+        const userInfo = await userInfoResponse.json();
+        console.log('Google user info received');
+
+        // 백엔드로 Google 로그인 요청
         const backendResponse = await fetch(`${BACKEND_URL}/api/auth/google`, {
           method: 'POST',
           headers: {
@@ -91,21 +96,24 @@ const Login = () => {
           body: JSON.stringify({
             googleId: userInfo.sub,
             email: userInfo.email,
-            name: userInfo.name,
+            name: userInfo.name || userInfo.given_name,
             imageUrl: userInfo.picture
           }),
         });
 
-        console.log('Backend response status:', backendResponse.status);
+        // 백엔드 응답 처리
+        const data = await backendResponse.json();
         
         if (!backendResponse.ok) {
-          const errorData = await backendResponse.json();
-          console.error('Backend error:', errorData);
-          throw new Error(errorData.error || 'Google login failed');
+          console.error('Backend error:', data);
+          throw new Error(data.error || 'Failed to authenticate with server');
         }
 
-        const data = await backendResponse.json();
-        console.log('Backend response data:', data);
+        if (!data.success || !data.user) {
+          throw new Error('Invalid response from server');
+        }
+
+        console.log('Login successful');
         setUser(data.user);
         navigate('/');
       } catch (error) {
@@ -115,8 +123,9 @@ const Login = () => {
     },
     onError: (error) => {
       console.error('Google OAuth error:', error);
-      setError('Google login failed: ' + error.message);
-    }
+      setError('Google login failed: ' + (error.message || 'Unknown error'));
+    },
+    flow: 'implicit'
   });
 
   return (
