@@ -9,51 +9,101 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // 페이지 로드 시 세션에서 사용자 정보 확인
-    const checkAuth = async () => {
-      try {
-        // localStorage에서 토큰 가져오기
-        const token = localStorage.getItem('token');
-        console.log('Stored token:', token);
-        
-        if (!token) {
-          setLoading(false);
-          return;
-        }
+  // 인증 상태 확인
+  const checkAuth = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
 
-        const response = await fetch(`${BACKEND_URL}/api/auth/check`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
-        console.log('Auth check response:', await response.clone().json());
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (data.isAuthenticated && data.user) {
-            setUser({
-              ...data.user,
-              token: token
-            });
-          } else {
-            localStorage.removeItem('token');
-            setUser(null);
-          }
-        } else {
-          localStorage.removeItem('token');
-          setUser(null);
+      const response = await fetch(`${BACKEND_URL}/api/auth/check`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
-      } catch (error) {
-        console.error('Auth check failed:', error);
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.isAuthenticated) {
+        setUser({
+          ...data.user,
+          token
+        });
+      } else {
+        console.log('Auth check failed:', data.error);
         localStorage.removeItem('token');
         setUser(null);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error('Auth check error:', error);
+      localStorage.removeItem('token');
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // 로그인
+  const login = async (credentials) => {
+    const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(credentials)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Login failed');
+    }
+
+    localStorage.setItem('token', data.token);
+    setUser({
+      ...data.user,
+      token: data.token
+    });
+
+    return data;
+  };
+
+  // 회원가입
+  const register = async (userData) => {
+    const response = await fetch(`${BACKEND_URL}/api/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(userData)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Registration failed');
+    }
+
+    localStorage.setItem('token', data.token);
+    setUser({
+      ...data.user,
+      token: data.token
+    });
+
+    return data;
+  };
+
+  // 로그아웃
+  const logout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+  };
+
+  // 컴포넌트 마운트 시 인증 상태 확인
+  useEffect(() => {
     checkAuth();
   }, []);
 
@@ -61,6 +111,10 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     setUser,
+    login,
+    register,
+    logout,
+    checkAuth
   };
 
   return (
