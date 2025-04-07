@@ -104,6 +104,9 @@ const BookNowButton = ({ url }) => (
   </Button>
 );
 
+// 백엔드 URL 설정
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
+
 const TripPlanDetail = () => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -122,7 +125,7 @@ const TripPlanDetail = () => {
 
   const handleLogout = async () => {
     try {
-      await fetch('http://localhost:5001/api/auth/logout', {
+      await fetch(`${BACKEND_URL}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });
