@@ -41,12 +41,6 @@ import HotelIcon from '@mui/icons-material/Hotel';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CategoryIcon from '@mui/icons-material/Category';
-import OpenAI from 'openai';
-
-const openai = new OpenAI({
-  apiKey: process.env.REACT_APP_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true
-});
 
 const PREFERENCE_OPTIONS = [
   { value: '', label: 'None' },
@@ -115,11 +109,8 @@ const HomePage = () => {
     try {
       await fetch(`${BACKEND_URL}/api/auth/logout`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${user.token}`
-        }
+        credentials: 'include',
       });
-      localStorage.removeItem('token');
       setUser(null);
       handleMenuClose();
     } catch (error) {
@@ -279,36 +270,24 @@ const HomePage = () => {
         hotelData: hotelData,
         flightData: flightData,
         createdAt: new Date().toISOString(),
-        userId: user.id
+        userId: user._id
       };
 
       // 5. Save to backend
       console.log('Saving plan to backend:', newPlan);
-      console.log('User token:', user.token);
-      
-      if (!user.token) {
-        throw new Error('Authentication token is missing. Please log in again.');
-      }
-
       const response = await fetch(`${BACKEND_URL}/api/travel-plans`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${user.token}`
+          'Accept': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(newPlan),
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
-        console.error('Failed to save plan:', {
-          status: response.status,
-          statusText: response.statusText,
-          errorData,
-          headers: Object.fromEntries(response.headers.entries())
-        });
-        throw new Error(errorData.error || `Failed to save plan: ${response.status} ${response.statusText}`);
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to save plan');
       }
 
       const savedPlan = await response.json();

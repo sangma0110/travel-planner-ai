@@ -11,6 +11,7 @@ import {
   Alert
 } from '@mui/material';
 import { useGoogleLogin } from '@react-oauth/google';
+import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../../contexts/AuthContext';
 import GoogleIcon from '@mui/icons-material/Google';
 
@@ -41,6 +42,7 @@ const Login = () => {
 
     try {
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+      console.log('Sending request to:', `${BACKEND_URL}${endpoint}`); // 디버깅용 로그
       const response = await fetch(`${BACKEND_URL}${endpoint}`, {
         method: 'POST',
         headers: {
@@ -51,7 +53,7 @@ const Login = () => {
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || 'Something went wrong');
       }
@@ -60,7 +62,7 @@ const Login = () => {
       navigate('/');
     } catch (error) {
       setError(error.message);
-      console.error('Login error:', error);
+      console.error('Login error:', error); // 디버깅용 로그
     }
   };
 
@@ -84,7 +86,7 @@ const Login = () => {
         console.log('Google user info received');
 
         // 백엔드로 Google 로그인 요청
-        const backendResponse = await fetch(`${BACKEND_URL}/api/auth/googleLogin`, {
+        const backendResponse = await fetch(`${BACKEND_URL}/api/auth/google`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -99,8 +101,8 @@ const Login = () => {
           }),
         });
 
+        // 백엔드 응답 처리
         const data = await backendResponse.json();
-        console.log('Google login response:', data);
         
         if (!backendResponse.ok) {
           console.error('Backend error:', data);
@@ -111,6 +113,7 @@ const Login = () => {
           throw new Error('Invalid response from server');
         }
 
+        console.log('Login successful');
         setUser(data.user);
         navigate('/');
       } catch (error) {
