@@ -64,10 +64,6 @@ const testOpenAIKey = async () => {
 
 import { useEffect } from 'react';
 
-useEffect(() => {
-  testOpenAIKey();
-}, []);
-
 const PREFERENCE_OPTIONS = [
   { value: '', label: 'None' },
   { value: 'family', label: 'Family-friendly' },
@@ -188,6 +184,10 @@ const HomePage = () => {
     try {
       setIsGenerating(true);
       console.log('Starting plan generation...');
+
+      useEffect(() => {
+        testOpenAIKey();
+      }, []);
 
       if (!user) {
         setError('Please login to generate a travel plan');
