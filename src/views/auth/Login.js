@@ -15,6 +15,9 @@ import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../../contexts/AuthContext';
 import GoogleIcon from '@mui/icons-material/Google';
 
+// 백엔드 URL 설정
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
+
 const Login = () => {
   const navigate = useNavigate();
   const { setUser } = useAuth();
@@ -39,7 +42,8 @@ const Login = () => {
 
     try {
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}${endpoint}`, {
+      console.log('Sending request to:', `${BACKEND_URL}${endpoint}`); // 디버깅용 로그
+      const response = await fetch(`${BACKEND_URL}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -58,6 +62,7 @@ const Login = () => {
       navigate('/');
     } catch (error) {
       setError(error.message);
+      console.error('Login error:', error); // 디버깅용 로그
     }
   };
 
@@ -72,8 +77,9 @@ const Login = () => {
         });
 
         const userInfo = await response.json();
+        console.log('Google userInfo:', userInfo); // 디버깅용 로그
         
-        const backendResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/auth/google`, {
+        const backendResponse = await fetch(`${BACKEND_URL}/api/auth/google`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -97,6 +103,7 @@ const Login = () => {
         navigate('/');
       } catch (error) {
         setError(error.message);
+        console.error('Google login error:', error); // 디버깅용 로그
       }
     },
     onError: () => {

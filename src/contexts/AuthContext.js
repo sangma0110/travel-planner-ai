@@ -2,6 +2,9 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 
 const AuthContext = createContext();
 
+// 백엔드 URL 설정
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -10,7 +13,7 @@ export const AuthProvider = ({ children }) => {
     // 페이지 로드 시 세션에서 사용자 정보 확인
     const checkAuth = async () => {
       try {
-        const response = await fetch('http://localhost:5001/api/auth/check', {
+        const response = await fetch(`${BACKEND_URL}/api/auth/check`, {
           credentials: 'include',
         });
         
