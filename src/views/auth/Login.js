@@ -11,7 +11,6 @@ import {
   Alert
 } from '@mui/material';
 import { useGoogleLogin } from '@react-oauth/google';
-import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../../contexts/AuthContext';
 import GoogleIcon from '@mui/icons-material/Google';
 
@@ -42,33 +41,22 @@ const Login = () => {
 
     try {
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-      console.log('Sending request to:', `${BACKEND_URL}${endpoint}`);
       const response = await fetch(`${BACKEND_URL}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
 
       const data = await response.json();
-      console.log('Login response:', data);
-
+      
       if (!response.ok) {
         throw new Error(data.error || 'Something went wrong');
       }
 
-      // 토큰을 localStorage에 저장하고 user 객체에도 포함시킴
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-        setUser({
-          ...data.user,
-          token: data.token
-        });
-      } else {
-        throw new Error('No token received from server');
-      }
-
+      setUser(data.user);
       navigate('/');
     } catch (error) {
       setError(error.message);
@@ -96,15 +84,13 @@ const Login = () => {
         console.log('Google user info received');
 
         // 백엔드로 Google 로그인 요청
-        const backendResponse = await fetch(`${BACKEND_URL}/api/auth/google`, {
+        const backendResponse = await fetch(`${BACKEND_URL}/api/auth/googleLogin`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
           },
           credentials: 'include',
-          mode: 'cors',
           body: JSON.stringify({
             googleId: userInfo.sub,
             email: userInfo.email,
@@ -113,11 +99,8 @@ const Login = () => {
           }),
         });
 
-        // 백엔드 응답 처리
         const data = await backendResponse.json();
         console.log('Google login response:', data);
-        console.log('User data:', data.user);
-        console.log('Token from response:', data.token);
         
         if (!backendResponse.ok) {
           console.error('Backend error:', data);
@@ -128,23 +111,7 @@ const Login = () => {
           throw new Error('Invalid response from server');
         }
 
-        // 토큰을 localStorage에 저장하고 user 객체에도 포함시킴
-        if (data.token) {
-          console.log('Saving token to localStorage:', data.token.substring(0, 20) + '...');
-          localStorage.setItem('token', data.token);
-          setUser({
-            ...data.user,
-            token: data.token
-          });
-        } else {
-          console.error('Token is missing from response');
-          throw new Error('No token received from server');
-        }
-
-        console.log('Login successful, user:', {
-          ...data.user,
-          token: data.token.substring(0, 20) + '...'
-        });
+        setUser(data.user);
         navigate('/');
       } catch (error) {
         console.error('Google login error:', error);
