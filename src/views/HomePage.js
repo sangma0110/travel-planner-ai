@@ -67,6 +67,9 @@ const LocationOption = ({ option }) => (
   </Box>
 );
 
+// 백엔드 URL 설정
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
+
 const HomePage = () => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -104,7 +107,7 @@ const HomePage = () => {
 
   const handleLogout = async () => {
     try {
-      await fetch('http://localhost:5001/api/auth/logout', {
+      await fetch(`${BACKEND_URL}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -270,7 +273,7 @@ const HomePage = () => {
 
       // 5. Save to backend
       console.log('Saving plan to backend:', newPlan);
-      const response = await fetch('http://localhost:5001/api/travel-plans', {
+      const response = await fetch(`${BACKEND_URL}/api/travel-plans`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

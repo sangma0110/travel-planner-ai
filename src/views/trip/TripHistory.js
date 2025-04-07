@@ -46,6 +46,9 @@ const StyledCard = styled(Card)(({ theme }) => ({
   },
 }));
 
+// 백엔드 URL 설정
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
+
 const TripHistory = () => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -87,13 +90,12 @@ const TripHistory = () => {
   const loadPlans = async () => {
     try {
       setLoading(true);
-      setError(null);
-      const response = await fetch('http://localhost:5001/api/travel-plans', {
+      const response = await fetch(`${BACKEND_URL}/api/travel-plans`, {
         credentials: 'include'
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to load travel plans');
+        throw new Error('Failed to fetch travel plans');
       }
 
       const data = await response.json();
@@ -118,7 +120,7 @@ const TripHistory = () => {
   const confirmDelete = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5001/api/travel-plans/${selectedPlan._id}`, {
+      const response = await fetch(`${BACKEND_URL}/api/travel-plans/${selectedPlan._id}`, {
         method: 'DELETE',
         credentials: 'include'
       });
@@ -127,7 +129,7 @@ const TripHistory = () => {
         throw new Error('Failed to delete travel plan');
       }
 
-      await loadPlans(); // Reload the plans after deletion
+      await loadPlans();
       setDeleteDialogOpen(false);
       setSelectedPlan(null);
     } catch (err) {
