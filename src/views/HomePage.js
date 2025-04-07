@@ -115,8 +115,11 @@ const HomePage = () => {
     try {
       await fetch(`${BACKEND_URL}/api/auth/logout`, {
         method: 'POST',
-        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${user.token}`
+        }
       });
+      localStorage.removeItem('token');
       setUser(null);
       handleMenuClose();
     } catch (error) {
@@ -281,6 +284,12 @@ const HomePage = () => {
 
       // 5. Save to backend
       console.log('Saving plan to backend:', newPlan);
+      console.log('User token:', user.token);
+      
+      if (!user.token) {
+        throw new Error('Authentication token is missing. Please log in again.');
+      }
+
       const response = await fetch(`${BACKEND_URL}/api/travel-plans`, {
         method: 'POST',
         headers: {
