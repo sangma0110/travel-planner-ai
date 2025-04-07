@@ -279,7 +279,8 @@ const HomePage = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
         },
         credentials: 'include',
         body: JSON.stringify(newPlan),
@@ -287,7 +288,8 @@ const HomePage = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to save plan');
+        console.error('Failed to save plan:', errorData);
+        throw new Error(errorData.error || 'Failed to save plan');
       }
 
       const savedPlan = await response.json();
