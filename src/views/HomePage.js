@@ -48,22 +48,6 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true
 });
 
-const testOpenAIKey = async () => {
-  try {
-    const res = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [{ role: 'user', content: 'Say hello in a creative way!' }],
-      max_tokens: 50
-    });
-
-    console.log('✅ GPT 정상 동작:', res.choices[0].message.content);
-  } catch (error) {
-    console.error('❌ GPT Key 오류:', error.message || error);
-  }
-};
-
-import { useEffect } from 'react';
-
 const PREFERENCE_OPTIONS = [
   { value: '', label: 'None' },
   { value: 'family', label: 'Family-friendly' },
@@ -184,10 +168,6 @@ const HomePage = () => {
     try {
       setIsGenerating(true);
       console.log('Starting plan generation...');
-
-      useEffect(() => {
-        testOpenAIKey();
-      }, []);
 
       if (!user) {
         setError('Please login to generate a travel plan');

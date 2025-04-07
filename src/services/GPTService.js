@@ -2,9 +2,6 @@ import OpenAI from 'openai';
 import { bookingService } from './BookingService';
 import { format } from 'date-fns';
 
-console.log('OpenAI API Key exists:', !!process.env.REACT_APP_OPENAI_API_KEY);
-console.log('OpenAI API Key starts with:', process.env.REACT_APP_OPENAI_API_KEY ? process.env.REACT_APP_OPENAI_API_KEY.substring(0, 3) + '...' : 'undefined');
-
 const openai = new OpenAI({
   apiKey: process.env.REACT_APP_OPENAI_API_KEY,
   dangerouslyAllowBrowser: true
