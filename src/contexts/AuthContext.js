@@ -16,6 +16,10 @@ export const AuthProvider = ({ children }) => {
         const response = await fetch(`${BACKEND_URL}/api/auth/check`, {
           credentials: 'include',
           withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          }
         });
         
         if (response.ok) {

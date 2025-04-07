@@ -93,7 +93,11 @@ const TripHistory = () => {
       setLoading(true);
       const response = await fetch(`${BACKEND_URL}/api/travel-plans`, {
         credentials: 'include',
-        withCredentials: true
+        withCredentials: true,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
       });
 
       if (!response.ok) {
@@ -125,7 +129,11 @@ const TripHistory = () => {
       const response = await fetch(`${BACKEND_URL}/api/travel-plans/${selectedPlan._id}`, {
         method: 'DELETE',
         credentials: 'include',
-        withCredentials: true
+        withCredentials: true,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
       });
 
       if (!response.ok) {
