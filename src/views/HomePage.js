@@ -270,7 +270,7 @@ const HomePage = () => {
         hotelData: hotelData,
         flightData: flightData,
         createdAt: new Date().toISOString(),
-        userId: user._id
+        userId: user.id
       };
 
       // 5. Save to backend
