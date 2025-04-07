@@ -259,6 +259,8 @@ const HomePage = () => {
       const gptResponse = await gptService.generateTravelPlan(planData, hotelData, flightData);
       console.log('GPT Response received');
 
+      console.log("user", user); 
+
       // 4. Create new travel plan object with all data
       const newPlan = {
         ...formData,
