@@ -70,6 +70,7 @@ const Login = () => {
     flow: 'implicit',
     onSuccess: async (tokenResponse) => {
       try {
+        console.log('Google login success, fetching user info...');
         const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: {
             Authorization: `Bearer ${tokenResponse.access_token}`,
@@ -77,17 +78,16 @@ const Login = () => {
         });
 
         const userInfo = await response.json();
-        console.log('Google userInfo:', userInfo);
+        console.log('Google userInfo received:', userInfo);
         
+        console.log('Sending request to backend:', `${BACKEND_URL}/api/auth/google`);
         const backendResponse = await fetch(`${BACKEND_URL}/api/auth/google`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Origin': window.location.origin
           },
           credentials: 'include',
-          mode: 'cors',
           body: JSON.stringify({
             googleId: userInfo.sub,
             email: userInfo.email,
@@ -96,22 +96,26 @@ const Login = () => {
           }),
         });
 
+        console.log('Backend response status:', backendResponse.status);
+        
         if (!backendResponse.ok) {
           const errorData = await backendResponse.json();
+          console.error('Backend error:', errorData);
           throw new Error(errorData.error || 'Google login failed');
         }
 
         const data = await backendResponse.json();
+        console.log('Backend response data:', data);
         setUser(data.user);
         navigate('/');
       } catch (error) {
         console.error('Google login error:', error);
-        setError(error.message);
+        setError(error.message || 'Failed to login with Google');
       }
     },
     onError: (error) => {
       console.error('Google OAuth error:', error);
-      setError('Google login failed');
+      setError('Google login failed: ' + error.message);
     }
   });
 
