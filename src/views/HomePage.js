@@ -286,9 +286,8 @@ const HomePage = () => {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest'
+          'Authorization': `Bearer ${user.token}`
         },
-        credentials: 'include',
         body: JSON.stringify(newPlan),
       });
 
