@@ -117,7 +117,7 @@ const Login = () => {
         const data = await backendResponse.json();
         console.log('Google login response:', data);
         console.log('User data:', data.user);
-        console.log('Token from response:', data.user?.token);
+        console.log('Token from response:', data.token);
         
         if (!backendResponse.ok) {
           console.error('Backend error:', data);
@@ -129,16 +129,22 @@ const Login = () => {
         }
 
         // 토큰을 localStorage에 저장하고 user 객체에도 포함시킴
-        if (data.user && data.user.token) {
-          console.log('Saving token to localStorage:', data.user.token);
-          localStorage.setItem('token', data.user.token);
-          setUser(data.user);
+        if (data.token) {
+          console.log('Saving token to localStorage:', data.token.substring(0, 20) + '...');
+          localStorage.setItem('token', data.token);
+          setUser({
+            ...data.user,
+            token: data.token
+          });
         } else {
           console.error('Token is missing from response');
           throw new Error('No token received from server');
         }
 
-        console.log('Login successful, user:', data.user);
+        console.log('Login successful, user:', {
+          ...data.user,
+          token: data.token.substring(0, 20) + '...'
+        });
         navigate('/');
       } catch (error) {
         console.error('Google login error:', error);
