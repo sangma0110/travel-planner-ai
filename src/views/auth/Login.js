@@ -113,6 +113,8 @@ const Login = () => {
         // 백엔드 응답 처리
         const data = await backendResponse.json();
         console.log('Google login response:', data);
+        console.log('User data:', data.user);
+        console.log('Token from response:', data.user?.token);
         
         if (!backendResponse.ok) {
           console.error('Backend error:', data);
@@ -124,10 +126,12 @@ const Login = () => {
         }
 
         // 토큰을 localStorage에 저장하고 user 객체에도 포함시킴
-        if (data.user.token) {
+        if (data.user && data.user.token) {
+          console.log('Saving token to localStorage:', data.user.token);
           localStorage.setItem('token', data.user.token);
           setUser(data.user);
         } else {
+          console.error('Token is missing from response');
           throw new Error('No token received from server');
         }
 
