@@ -293,9 +293,14 @@ const HomePage = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Failed to save plan:', errorData);
-        throw new Error(errorData.error || 'Failed to save plan');
+        const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+        console.error('Failed to save plan:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData,
+          headers: Object.fromEntries(response.headers.entries())
+        });
+        throw new Error(errorData.error || `Failed to save plan: ${response.status} ${response.statusText}`);
       }
 
       const savedPlan = await response.json();
