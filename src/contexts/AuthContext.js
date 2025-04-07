@@ -13,16 +13,42 @@ export const AuthProvider = ({ children }) => {
     // 페이지 로드 시 세션에서 사용자 정보 확인
     const checkAuth = async () => {
       try {
+        // localStorage에서 토큰 가져오기
+        const token = localStorage.getItem('token');
+        console.log('Stored token:', token);
+        
+        if (!token) {
+          setLoading(false);
+          return;
+        }
+
         const response = await fetch(`${BACKEND_URL}/api/auth/check`, {
-          credentials: 'include',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
         });
+        
+        console.log('Auth check response:', await response.clone().json());
         
         if (response.ok) {
           const data = await response.json();
-          setUser(data.user);
+          if (data.isAuthenticated && data.user) {
+            setUser({
+              ...data.user,
+              token: token
+            });
+          } else {
+            localStorage.removeItem('token');
+            setUser(null);
+          }
+        } else {
+          localStorage.removeItem('token');
+          setUser(null);
         }
       } catch (error) {
         console.error('Auth check failed:', error);
+        localStorage.removeItem('token');
+        setUser(null);
       } finally {
         setLoading(false);
       }

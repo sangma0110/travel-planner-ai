@@ -42,27 +42,37 @@ const Login = () => {
 
     try {
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-      console.log('Sending request to:', `${BACKEND_URL}${endpoint}`); // 디버깅용 로그
+      console.log('Sending request to:', `${BACKEND_URL}${endpoint}`);
       const response = await fetch(`${BACKEND_URL}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
         body: JSON.stringify(formData),
       });
 
       const data = await response.json();
+      console.log('Login response:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Something went wrong');
       }
 
-      setUser(data.user);
+      // 토큰을 localStorage에 저장하고 user 객체에도 포함시킴
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        setUser({
+          ...data.user,
+          token: data.token
+        });
+      } else {
+        throw new Error('No token received from server');
+      }
+
       navigate('/');
     } catch (error) {
       setError(error.message);
-      console.error('Login error:', error); // 디버깅용 로그
+      console.error('Login error:', error);
     }
   };
 
@@ -92,7 +102,6 @@ const Login = () => {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
-          credentials: 'include',
           body: JSON.stringify({
             googleId: userInfo.sub,
             email: userInfo.email,
@@ -103,6 +112,7 @@ const Login = () => {
 
         // 백엔드 응답 처리
         const data = await backendResponse.json();
+        console.log('Google login response:', data);
         
         if (!backendResponse.ok) {
           console.error('Backend error:', data);
@@ -113,8 +123,15 @@ const Login = () => {
           throw new Error('Invalid response from server');
         }
 
-        console.log('Login successful');
-        setUser(data.user);
+        // 토큰을 localStorage에 저장하고 user 객체에도 포함시킴
+        if (data.user.token) {
+          localStorage.setItem('token', data.user.token);
+          setUser(data.user);
+        } else {
+          throw new Error('No token received from server');
+        }
+
+        console.log('Login successful, user:', data.user);
         navigate('/');
       } catch (error) {
         console.error('Google login error:', error);
