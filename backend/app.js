@@ -11,19 +11,13 @@ dotenv.config();
 const app = express();
 
 // CORS 설정
-const corsOptions = {
-  origin: 'http://localhost:3000',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  exposedHeaders: ['Content-Type', 'Authorization'],
-  maxAge: 86400 // 24 hours
-};
-
-app.use(cors(corsOptions));
-
-// OPTIONS 요청 처리
-app.options('*', cors(corsOptions));
+app.use(cors({
+  origin: [
+    'https://travel-planner-ai-lac.vercel.app',
+    'http://localhost:3000'
+  ],
+  credentials: true
+}));
 
 // 세션 설정
 app.use(session({
@@ -31,12 +25,13 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false, // 개발 환경에서는 false
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
 }));
 
-// 미들웨어
 app.use(express.json());
 
 // 데이터베이스 연결
@@ -50,11 +45,16 @@ app.use('/api/travel-plans', travelPlanRoutes);
 
 // 기본 라우트
 app.get('/', (req, res) => {
-  res.json({ message: 'AI Travel Planner API' });
+  res.json({ message: 'Travel Planner AI Backend API' });
 });
 
 const PORT = process.env.PORT || 5001;
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-}); 
+// Vercel 배포를 위한 수정
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+module.exports = app; 
