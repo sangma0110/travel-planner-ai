@@ -49,6 +49,7 @@ const Login = () => {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
+        withCredentials: true,
         body: JSON.stringify(formData),
       });
 
@@ -93,6 +94,7 @@ const Login = () => {
             'Accept': 'application/json',
           },
           credentials: 'include',
+          withCredentials: true,
           body: JSON.stringify({
             googleId: userInfo.sub,
             email: userInfo.email,

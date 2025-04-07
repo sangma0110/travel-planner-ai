@@ -78,6 +78,7 @@ const TripHistory = () => {
       await fetch(`${BACKEND_URL}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include',
+        withCredentials: true,
       });
       setUser(null);
       handleMenuClose();
@@ -91,7 +92,8 @@ const TripHistory = () => {
     try {
       setLoading(true);
       const response = await fetch(`${BACKEND_URL}/api/travel-plans`, {
-        credentials: 'include'
+        credentials: 'include',
+        withCredentials: true
       });
 
       if (!response.ok) {
@@ -122,7 +124,8 @@ const TripHistory = () => {
       setLoading(true);
       const response = await fetch(`${BACKEND_URL}/api/travel-plans/${selectedPlan._id}`, {
         method: 'DELETE',
-        credentials: 'include'
+        credentials: 'include',
+        withCredentials: true
       });
 
       if (!response.ok) {

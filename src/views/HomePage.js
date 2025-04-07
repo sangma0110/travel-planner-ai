@@ -110,6 +110,7 @@ const HomePage = () => {
       await fetch(`${BACKEND_URL}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include',
+        withCredentials: true,
       });
       setUser(null);
       handleMenuClose();
@@ -282,6 +283,7 @@ const HomePage = () => {
           'Accept': 'application/json'
         },
         credentials: 'include',
+        withCredentials: true,
         body: JSON.stringify(newPlan),
       });
 
