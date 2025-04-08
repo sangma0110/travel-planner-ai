@@ -41,6 +41,7 @@ const Login = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
+    console.log('Attempting login/register...');
 
     try {
       const response = await fetch(`${BACKEND_URL}/api/${isLogin ? 'auth/login' : 'auth/register'}`, {
@@ -52,6 +53,7 @@ const Login = () => {
       });
 
       const data = await response.json();
+      console.log('Auth response:', { status: response.status, ok: response.ok });
 
       if (!response.ok) {
         throw new Error(data.message || 'Authentication failed');
@@ -59,12 +61,15 @@ const Login = () => {
 
       // Save token to localStorage
       localStorage.setItem('token', data.token);
+      console.log('Token saved to localStorage:', data.token);
       
       // Update user state
       setUser(data.user);
+      console.log('User state updated:', data.user);
       
       navigate('/');
     } catch (error) {
+      console.error('Auth error:', error);
       setError(error.message);
     } finally {
       setLoading(false);
@@ -73,6 +78,7 @@ const Login = () => {
 
   const googleLogin = async (response) => {
     try {
+      console.log('Attempting Google login...');
       const res = await fetch(`${BACKEND_URL}/api/auth/google`, {
         method: 'POST',
         headers: {
@@ -84,6 +90,7 @@ const Login = () => {
       });
 
       const data = await res.json();
+      console.log('Google auth response:', { status: res.status, ok: res.ok });
 
       if (!res.ok) {
         throw new Error(data.message || 'Google authentication failed');
@@ -91,12 +98,15 @@ const Login = () => {
 
       // Save token to localStorage
       localStorage.setItem('token', data.token);
+      console.log('Token saved to localStorage:', data.token);
       
       // Update user state
       setUser(data.user);
+      console.log('User state updated:', data.user);
       
       navigate('/');
     } catch (error) {
+      console.error('Google login error:', error);
       setError(error.message);
     }
   };

@@ -62,6 +62,8 @@ const TripHistory = () => {
   const [anchorEl, setAnchorEl] = useState(null);
 
   useEffect(() => {
+    console.log('Current user state:', user);
+    console.log('Stored token:', localStorage.getItem('token'));
     loadPlans();
   }, []);
 
@@ -75,11 +77,15 @@ const TripHistory = () => {
 
   const handleLogout = async () => {
     try {
+      const token = getToken();
       await fetch(`${BACKEND_URL}/api/auth/logout`, {
         method: 'POST',
-        credentials: 'include',
-        withCredentials: true,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
+      // Clear token from localStorage
+      localStorage.removeItem('token');
       setUser(null);
       handleMenuClose();
       navigate('/');
@@ -91,21 +97,27 @@ const TripHistory = () => {
   const loadPlans = async () => {
     try {
       setLoading(true);
+      const token = getToken();
+      console.log('Using token for request:', token);
+      
       const response = await fetch(`${BACKEND_URL}/api/travel-plans`, {
         headers: {
-          'Authorization': `Bearer ${getToken()}`
+          'Authorization': `Bearer ${token}`
         }
       });
+
+      console.log('Load plans response:', { status: response.status, ok: response.ok });
 
       if (!response.ok) {
         throw new Error('Failed to fetch travel plans');
       }
 
       const data = await response.json();
+      console.log('Loaded plans:', data.length);
       setPlans(data);
     } catch (err) {
-      setError(err.message);
       console.error('Error loading plans:', err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -123,12 +135,17 @@ const TripHistory = () => {
   const confirmDelete = async () => {
     try {
       setLoading(true);
+      const token = getToken();
+      console.log('Using token for delete request:', token);
+      
       const response = await fetch(`${BACKEND_URL}/api/travel-plans/${selectedPlan._id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${getToken()}`
+          'Authorization': `Bearer ${token}`
         }
       });
+
+      console.log('Delete plan response:', { status: response.status, ok: response.ok });
 
       if (!response.ok) {
         throw new Error('Failed to delete travel plan');
@@ -138,8 +155,8 @@ const TripHistory = () => {
       setDeleteDialogOpen(false);
       setSelectedPlan(null);
     } catch (err) {
-      setError(err.message);
       console.error('Error deleting plan:', err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
