@@ -107,12 +107,8 @@ const HomePage = () => {
 
   const handleLogout = async () => {
     try {
-      await fetch(`${BACKEND_URL}/api/auth/logout`, {
-        method: 'POST',
-        credentials: 'include',
-        withCredentials: true,
-      });
       setUser(null);
+      localStorage.removeItem('token');  // JWT 토큰 제거
       handleMenuClose();
     } catch (error) {
       console.error('Logout failed:', error);
@@ -280,10 +276,9 @@ const HomePage = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${getToken()}`  // JWT 토큰 추가
         },
-        credentials: 'include',
-        withCredentials: true,
         body: JSON.stringify(newPlan),
       });
 

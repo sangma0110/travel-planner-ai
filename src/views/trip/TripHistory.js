@@ -92,11 +92,10 @@ const TripHistory = () => {
     try {
       setLoading(true);
       const response = await fetch(`${BACKEND_URL}/api/travel-plans`, {
-        credentials: 'include',
-        withCredentials: true,
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`
         }
       });
 
@@ -128,11 +127,10 @@ const TripHistory = () => {
       setLoading(true);
       const response = await fetch(`${BACKEND_URL}/api/travel-plans/${selectedPlan._id}`, {
         method: 'DELETE',
-        credentials: 'include',
-        withCredentials: true,
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`
         }
       });
 

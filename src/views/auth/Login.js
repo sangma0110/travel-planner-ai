@@ -28,6 +28,7 @@ const Login = () => {
     name: ''
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -39,98 +40,73 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     try {
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-      console.log('Sending request to:', `${BACKEND_URL}${endpoint}`); // 디버깅용 로그
       const response = await fetch(`${BACKEND_URL}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        credentials: 'include',
-        withCredentials: true,
         body: JSON.stringify(formData),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Something went wrong');
+        throw new Error(data.error || 'Authentication failed');
       }
 
-      setUser(data.user);
+      // JWT 토큰과 사용자 정보 저장
+      updateAuthState(data.user, data.token);
       navigate('/');
     } catch (error) {
+      console.error('Auth error:', error);
       setError(error.message);
-      console.error('Login error:', error); // 디버깅용 로그
+    } finally {
+      setLoading(false);
     }
   };
 
-  const googleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      try {
-        console.log('Google OAuth success, token received');
-        
-        // Google 사용자 정보 가져오기
-        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-          headers: {
-            'Authorization': `Bearer ${tokenResponse.access_token}`,
-          },
-          withCredentials: true
-        });
+  const googleLogin = async (response) => {
+    try {
+      setLoading(true);
+      setError('');
 
-        if (!userInfoResponse.ok) {
-          throw new Error('Failed to fetch Google user info');
-        }
+      const userInfo = jwtDecode(response.credential);
+      
+      const backendResponse = await fetch(`${BACKEND_URL}/api/auth/google`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          googleId: userInfo.sub,
+          email: userInfo.email,
+          name: userInfo.name || userInfo.given_name,
+          imageUrl: userInfo.picture
+        }),
+      });
 
-        const userInfo = await userInfoResponse.json();
-        console.log('Google user info received');
+      const data = await backendResponse.json();
 
-        // 백엔드로 Google 로그인 요청
-        const backendResponse = await fetch(`${BACKEND_URL}/api/auth/google`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          credentials: 'include',
-          withCredentials: true,
-          body: JSON.stringify({
-            googleId: userInfo.sub,
-            email: userInfo.email,
-            name: userInfo.name || userInfo.given_name,
-            imageUrl: userInfo.picture
-          }),
-        });
-
-        // 백엔드 응답 처리
-        const data = await backendResponse.json();
-        
-        if (!backendResponse.ok) {
-          console.error('Backend error:', data);
-          throw new Error(data.error || 'Failed to authenticate with server');
-        }
-
-        if (!data.success || !data.user) {
-          throw new Error('Invalid response from server');
-        }
-
-        console.log('Login successful');
-        setUser(data.user);
-        navigate('/');
-      } catch (error) {
-        console.error('Google login error:', error);
-        setError(error.message || 'Failed to login with Google');
+      if (!backendResponse.ok) {
+        throw new Error(data.error || 'Google login failed');
       }
-    },
-    onError: (error) => {
-      console.error('Google OAuth error:', error);
-      setError('Google login failed: ' + (error.message || 'Unknown error'));
-    },
-    flow: 'implicit'
-  });
+
+      // JWT 토큰과 사용자 정보 저장
+      updateAuthState(data.user, data.token);
+      navigate('/');
+    } catch (error) {
+      console.error('Google login error:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Container maxWidth="sm">
