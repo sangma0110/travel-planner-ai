@@ -43,12 +43,10 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-      const response = await fetch(`${BACKEND_URL}${endpoint}`, {
+      const response = await fetch(`${BACKEND_URL}/api/${isLogin ? 'auth/login' : 'auth/register'}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
         },
         body: JSON.stringify(formData),
       });
@@ -56,14 +54,17 @@ const Login = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Authentication failed');
+        throw new Error(data.message || 'Authentication failed');
       }
 
-      // JWT 토큰과 사용자 정보 저장
-      updateAuthState(data.user, data.token);
+      // Save token to localStorage
+      localStorage.setItem('token', data.token);
+      
+      // Update user state
+      setUser(data.user);
+      
       navigate('/');
     } catch (error) {
-      console.error('Auth error:', error);
       setError(error.message);
     } finally {
       setLoading(false);
@@ -72,39 +73,31 @@ const Login = () => {
 
   const googleLogin = async (response) => {
     try {
-      setLoading(true);
-      setError('');
-
-      const userInfo = jwtDecode(response.credential);
-      
-      const backendResponse = await fetch(`${BACKEND_URL}/api/auth/google`, {
+      const res = await fetch(`${BACKEND_URL}/api/auth/google`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
         },
         body: JSON.stringify({
-          googleId: userInfo.sub,
-          email: userInfo.email,
-          name: userInfo.name || userInfo.given_name,
-          imageUrl: userInfo.picture
+          credential: response.credential,
         }),
       });
 
-      const data = await backendResponse.json();
+      const data = await res.json();
 
-      if (!backendResponse.ok) {
-        throw new Error(data.error || 'Google login failed');
+      if (!res.ok) {
+        throw new Error(data.message || 'Google authentication failed');
       }
 
-      // JWT 토큰과 사용자 정보 저장
-      updateAuthState(data.user, data.token);
+      // Save token to localStorage
+      localStorage.setItem('token', data.token);
+      
+      // Update user state
+      setUser(data.user);
+      
       navigate('/');
     } catch (error) {
-      console.error('Google login error:', error);
       setError(error.message);
-    } finally {
-      setLoading(false);
     }
   };
 

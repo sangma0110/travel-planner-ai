@@ -52,7 +52,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001'
 const TripHistory = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { user, setUser } = useAuth();
+  const { user, setUser, getToken } = useAuth();
   const [plans, setPlans] = useState([]);
   const [currentTab, setCurrentTab] = useState(0);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -93,8 +93,6 @@ const TripHistory = () => {
       setLoading(true);
       const response = await fetch(`${BACKEND_URL}/api/travel-plans`, {
         headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${getToken()}`
         }
       });
@@ -128,8 +126,6 @@ const TripHistory = () => {
       const response = await fetch(`${BACKEND_URL}/api/travel-plans/${selectedPlan._id}`, {
         method: 'DELETE',
         headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${getToken()}`
         }
       });
