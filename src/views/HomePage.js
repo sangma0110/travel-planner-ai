@@ -73,7 +73,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001'
 const HomePage = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { user, setUser } = useAuth();
+  const { user, setUser, getToken } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({
@@ -272,12 +272,14 @@ const HomePage = () => {
 
       // 5. Save to backend
       console.log('Saving plan to backend:', newPlan);
+      const token = getToken();
+      console.log('Token being used:', token);  // Add token logging
       const response = await fetch(`${BACKEND_URL}/api/travel-plans`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Authorization': `Bearer ${getToken()}`  // JWT 토큰 추가
+          'Authorization': `Bearer ${token}`  // Use the stored token
         },
         body: JSON.stringify(newPlan),
       });
