@@ -76,40 +76,47 @@ const Login = () => {
     }
   };
 
-  const googleLogin = async (response) => {
-    try {
-      console.log('Attempting Google login...');
-      const res = await fetch(`${BACKEND_URL}/api/auth/google`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          credential: response.credential,
-        }),
-      });
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (response) => {
+      try {
+        console.log('Attempting Google login...');
+        const res = await fetch(`${BACKEND_URL}/api/auth/google`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            credential: response.credential,
+            access_token: response.access_token
+          }),
+        });
 
-      const data = await res.json();
-      console.log('Google auth response:', { status: res.status, ok: res.ok });
+        const data = await res.json();
+        console.log('Google auth response:', { status: res.status, ok: res.ok });
 
-      if (!res.ok) {
-        throw new Error(data.message || 'Google authentication failed');
+        if (!res.ok) {
+          throw new Error(data.message || 'Google authentication failed');
+        }
+
+        // Save token to localStorage
+        localStorage.setItem('token', data.token);
+        console.log('Token saved to localStorage:', data.token);
+        
+        // Update user state
+        setUser(data.user);
+        console.log('User state updated:', data.user);
+        
+        navigate('/');
+      } catch (error) {
+        console.error('Google login error:', error);
+        setError(error.message);
       }
-
-      // Save token to localStorage
-      localStorage.setItem('token', data.token);
-      console.log('Token saved to localStorage:', data.token);
-      
-      // Update user state
-      setUser(data.user);
-      console.log('User state updated:', data.user);
-      
-      navigate('/');
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error('Google login error:', error);
-      setError(error.message);
+      setError('Google login failed');
     }
-  };
+  });
 
   return (
     <Container maxWidth="sm">
@@ -173,7 +180,7 @@ const Login = () => {
           <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
             <Button
               variant="outlined"
-              onClick={googleLogin}
+              onClick={() => googleLogin()}
               startIcon={<GoogleIcon />}
               sx={{
                 backgroundColor: 'white',
